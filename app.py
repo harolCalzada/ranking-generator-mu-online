@@ -29,7 +29,7 @@ def elo_df(elo_rank):
 
 def events_df(events):
     return pd.DataFrame([{
-        "ts": e.ts,
+        "ts": e.ts if e.ts is not None else pd.NaT,
         "killer": e.killer,
         "target": e.target
     } for e in events])
@@ -210,9 +210,8 @@ def main():
 
     with tab5:
         st.subheader("Actividad en el tiempo")
-        # Group by minute
-        if not df_events.empty:
-            ts_df = df_events.copy()
+        if not df_events.empty and df_events['ts'].notna().any():
+            ts_df = df_events.dropna(subset=['ts']).copy()
             ts_df['minute'] = ts_df['ts'].dt.floor('min')
             per_min = ts_df.groupby('minute').size().reset_index(name='events')
             line = alt.Chart(per_min).mark_line(point=True).encode(
@@ -220,7 +219,7 @@ def main():
             )
             st.altair_chart(line, use_container_width=True)
         else:
-            st.info("Sin eventos.")
+            st.info("Sin datos de tiempo disponibles. Los logs no contienen fechas.")
 
     if show_raw:
         st.subheader("Eventos crudos (primeros 500)")

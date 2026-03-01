@@ -55,6 +55,10 @@ def limpiar_logs_texto(texto: str) -> list[str]:
                     resultados.append(f"{fecha_actual} | {k} -> {t}")
                 pendientes = []
 
+    # Vaciar kills pendientes que nunca tuvieron fecha asociada
+    for k, t in pendientes:
+        resultados.append(f"{k} -> {t}")
+
     return resultados
 
 def limpiar_archivo(entrada: Path, salida: Path) -> int:

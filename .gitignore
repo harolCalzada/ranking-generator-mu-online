@@ -42,7 +42,6 @@ Thumbs.db
 # Logs y datos generados
 logs*.txt
 !logs_clean.txt
-logs_clean.txt
 exports/
 *.csv
 *.json

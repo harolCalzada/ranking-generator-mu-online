@@ -10,30 +10,38 @@ DATE_PATTERN = re.compile(r"([A-Za-z]+\s+\d{1,2},\s+\d{4}\s+\d{1,2}:\d{2}\s+[AP]
 
 @dataclass
 class Event:
-    ts: datetime
+    ts: datetime | None
     killer: str
     target: str
 
 
-def parse_event_line(line: str) -> Tuple[datetime, str, str] | None:
-    """Parse a line like 'August 31, 2025 6:04 PM | DeadPoll -> R3APER'"""
+def parse_event_line(line: str) -> Tuple[datetime | None, str, str] | None:
+    """Parse a line like 'August 31, 2025 6:04 PM | DeadPoll -> R3APER'
+    or a dateless line like 'Killer -> Target'."""
     line = line.strip()
-    if not line or "|" not in line or "->" not in line:
+    if not line or "->" not in line:
         return None
-    try:
-        date_part, action = line.split("|", 1)
-        killer, target = action.split("->", 1)
-    except ValueError:
-        return None
-    ts_match = DATE_PATTERN.search(date_part)
-    if not ts_match:
-        return None
-    ts_str = ts_match.group(1)
-    try:
-        ts = datetime.strptime(ts_str, "%B %d, %Y %I:%M %p")
-    except ValueError:
-        # fallback: try without comma variations or leading zeros
-        return None
+
+    ts: datetime | None = None
+
+    if "|" in line:
+        try:
+            date_part, action = line.split("|", 1)
+            killer, target = action.split("->", 1)
+        except ValueError:
+            return None
+        ts_match = DATE_PATTERN.search(date_part)
+        if ts_match:
+            try:
+                ts = datetime.strptime(ts_match.group(1), "%B %d, %Y %I:%M %p")
+            except ValueError:
+                pass
+    else:
+        try:
+            killer, target = line.split("->", 1)
+        except ValueError:
+            return None
+
     killer = killer.strip()
     target = target.strip()
     if not killer or not target:
@@ -50,8 +58,9 @@ def load_events(path: Path) -> List[Event]:
                 continue
             ts, killer, target = parsed
             events.append(Event(ts=ts, killer=killer, target=target))
-    # sort by timestamp to ensure chronological order
-    events.sort(key=lambda e: e.ts)
+    # sort by timestamp only if events have dates
+    if events and events[0].ts is not None:
+        events.sort(key=lambda e: e.ts)
     return events
 
 

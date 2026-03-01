@@ -17,11 +17,14 @@ def cargar_eventos(ruta: Path):
     with ruta.open("r", encoding="utf-8", errors="ignore") as f:
         for linea in f:
             linea = linea.strip()
-            if not linea or "|" not in linea or "->" not in linea:
+            if not linea or "->" not in linea:
                 continue
             try:
-                _, accion = linea.split("|", 1)
-                killer, target = accion.split("->", 1)
+                if "|" in linea:
+                    _, accion = linea.split("|", 1)
+                    killer, target = accion.split("->", 1)
+                else:
+                    killer, target = linea.split("->", 1)
             except ValueError:
                 continue
             killer = killer.strip()
