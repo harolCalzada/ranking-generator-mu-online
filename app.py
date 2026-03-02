@@ -55,7 +55,7 @@ def main():
     # Filters (moved to sidebar)
     players = sorted(set(list(kills.keys()) + list(deaths.keys())))
     top_n = st.sidebar.number_input(
-        "Top N (ranking)", min_value=1, max_value=max(1, len(df_rank)), value=min(20, len(df_rank))
+        "Top N (ranking)", min_value=1, max_value=max(1, len(df_rank)), value=len(df_rank)
     )
     # Quick search for player
     q = st.sidebar.text_input("Buscar jugador", value="")
